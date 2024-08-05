@@ -2,16 +2,17 @@ import React, { useState } from "react";
 import { Form, FormGroup, Label, Input, Button, Col } from "reactstrap";
 import { API } from "../global";
 import { useNavigate } from "react-router-dom";
-function Addproduct({ productData, setProductData }) {
+
+function AddProduct({ productData, setProductData }) {
   const [name, setName] = useState("");
   const [productImage, setProductImage] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
 
   const navigate = useNavigate();
-  
+
   const handleSubmit = () => {
-    const newProducts = {
+    const newProduct = {
       name: name,
       productImage: productImage,
       description: description,
@@ -21,18 +22,27 @@ function Addproduct({ productData, setProductData }) {
     fetch(`${API}/products`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newProducts),
+      body: JSON.stringify(newProduct),
     })
-      .then((data) => data.json())
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to add product");
+        }
+        return response.json();
+      })
       .then((res) => {
         setProductData(res);
         console.log(res);
+        navigate("/");
       })
-      .then(() => navigate("/"));
+      .catch((error) => {
+        console.error("Error adding the product:", error);
+      });
   };
+
   return (
     <div>
-      <h1>Addproduct</h1>
+      <h1>Add Product</h1>
       <Button onClick={() => navigate(-1)}>BACK</Button>
       <Form>
         <FormGroup row>
@@ -102,4 +112,4 @@ function Addproduct({ productData, setProductData }) {
   );
 }
 
-export default Addproduct;
+export default AddProduct;

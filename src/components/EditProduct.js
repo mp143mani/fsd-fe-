@@ -5,50 +5,62 @@ import { useNavigate, useParams } from "react-router-dom";
 
 function EditProduct() {
   const { id } = useParams();
-  const [product, setProduct] = useState(null);
-
-  useEffect(() => {
-    fetch(`${API}/products/${id}`, {
-      method: "GET",
-    })
-      .then((data) => data.json())
-      .then((product) => setProduct(product));
-  }, []);
-  if (product) {
-    return <EditProductForm product={product} />;
-  } else {
-    return "Loading....";
-  }
-}
-
-function EditProductForm({ product }) {
-  const [name, setName] = useState(product.name);
-  const [productImage, setProductImage] = useState(product.productImage);
-  const [description, setDescription] = useState(product.description);
-  const [price, setPrice] = useState(product.price);
+  const [product, setProduct] = useState({
+    name: "",
+    productImage: "",
+    description: "",
+    price: "",
+  });
 
   const navigate = useNavigate();
 
-  const handleSubmit = () => {
-    const updatedProducts = {
-      name: name,
-      productImage: productImage,
-      description: description,
-      price: price,
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await fetch(`${API}/products/${id}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch product");
+        }
+        const product = await response.json();
+        setProduct(product);
+      } catch (error) {
+        console.error("Error fetching the product:", error);
+      }
     };
 
-    fetch(`${API}/products/${product.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updatedProducts),
-    })
-      .then((data) => data.json())
-      .then(() => navigate("/"));
+    fetchProduct();
+  }, [id]);
+
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    setProduct((prevProduct) => ({
+      ...prevProduct,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async () => {
+    try {
+      const response = await fetch(`${API}/products/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(product),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to update product");
+      }
+
+      await response.json();
+      navigate("/");
+    } catch (error) {
+      console.error("Error updating the product:", error);
+    }
   };
 
   return (
     <>
-      <h1>Editproduct</h1>
+      <h1>Edit Product</h1>
       <Button onClick={() => navigate(-1)}>BACK</Button>
       <Form>
         <FormGroup row>
@@ -61,8 +73,8 @@ function EditProductForm({ product }) {
               name="name"
               placeholder="Enter Product name"
               type="text"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
+              value={product.name}
+              onChange={handleChange}
             />
           </Col>
         </FormGroup>
@@ -76,8 +88,8 @@ function EditProductForm({ product }) {
               name="productImage"
               placeholder="Enter ProductImage"
               type="text"
-              value={productImage}
-              onChange={(event) => setProductImage(event.target.value)}
+              value={product.productImage}
+              onChange={handleChange}
             />
           </Col>
         </FormGroup>
@@ -91,8 +103,8 @@ function EditProductForm({ product }) {
               name="description"
               placeholder="Enter Description"
               type="text"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
+              value={product.description}
+              onChange={handleChange}
             />
           </Col>
         </FormGroup>
@@ -106,8 +118,8 @@ function EditProductForm({ product }) {
               name="price"
               placeholder="Enter Price"
               type="text"
-              value={price}
-              onChange={(event) => setPrice(event.target.value)}
+              value={product.price}
+              onChange={handleChange}
             />
           </Col>
         </FormGroup>
@@ -117,4 +129,5 @@ function EditProductForm({ product }) {
     </>
   );
 }
+
 export default EditProduct;

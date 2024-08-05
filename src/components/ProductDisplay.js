@@ -8,26 +8,33 @@ import { API } from "../global";
 export function ProductDisplay() {
   const [productData, setProductData] = useState([]);
 
-  const getProducts = () => {
-    axios.get(`${API}/products`).then((res) => {
+  const getProducts = async () => {
+    try {
+      const res = await axios.get(`${API}/products`);
       if (res.status === 401) {
         console.log("Data Not Found");
+      } else {
+        console.log(res.data);
+        setProductData(res.data);
       }
-      console.log(res.data);
-      setProductData(res.data);
-    });
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
   };
 
   useEffect(() => {
     getProducts();
   }, []);
 
-  const handleDelete = (id) => {
-    axios.delete(`${API}/products/` + id).then((res) => {
+  const handleDelete = async (id) => {
+    try {
+      const res = await axios.delete(`${API}/products/` + id);
       if (res.status === 200) {
         getProducts();
       }
-    });
+    } catch (error) {
+      console.error("Error deleting product:", error);
+    }
   };
 
   const navigate = useNavigate();
